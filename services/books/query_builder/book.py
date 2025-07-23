@@ -40,10 +40,9 @@ class BookQueryBuilder:
         await session.delete(book)
         await session.commit()
 
-
     @staticmethod
-    async def get_book_by_name(session:AsyncSessionDep, book_name:str) -> Book:
-        query= select(Book).where(Book.name == book_name)
+    async def get_book_by_name(session: AsyncSessionDep, book_name: str) -> Book:
+        query = select(Book).where(Book.name == book_name)
         result = await session.execute(query)
         book = result.scalar_one_or_none()
         if not book:

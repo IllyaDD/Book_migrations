@@ -47,6 +47,7 @@ async def delete_book(book_id:int, session:AsyncSessionDep):
 @books_router.get("/books/{book_name}", response_model=Book)
 async def get_book_by_name(book_name:str, session:AsyncSessionDep):
     try:
-        await BookQueryBuilder.get_book_by_name(session, book_name)
+        book = await BookQueryBuilder.get_book_by_name(session, book_name)
+        return book
     except EmptyQueryResult:
         raise HTTPException(status_code=404, detail="Book not found")
