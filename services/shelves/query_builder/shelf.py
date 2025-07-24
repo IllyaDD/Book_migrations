@@ -29,6 +29,12 @@ class ShelfQueryBuilder:
     @staticmethod
     async def add_shelf(session:AsyncSessionDep, shelf:Shelf):
         session.add(shelf)
-        session.commit()
-        session.refresh(shelf)
+        await session.commit()
+        await session.refresh(shelf)
         return shelf
+
+    @staticmethod
+    async def delete_shelf(session:AsyncSessionDep, shelf_id):
+        shelf = await ShelfQueryBuilder.get_shelf_by_id(session, shelf_id)
+        await session.delete(shelf)
+        await session.commit()
