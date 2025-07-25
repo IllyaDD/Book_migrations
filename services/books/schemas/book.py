@@ -9,7 +9,6 @@ class BookResponseSchema(SQLModel):
     id: int
     name: str = Field(max_length=32)
     description: str
-    link: str
     created_at: datetime
 
 

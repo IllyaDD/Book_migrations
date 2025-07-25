@@ -4,6 +4,8 @@ from sqlmodel import select
 from common.errors import EmptyQueryResult
 from dependecies.session import AsyncSessionDep
 from models.shelves import Shelf
+from models.books import Book
+from services.books.query_builder.book import BookQueryBuilder
 from sqlalchemy.orm import selectinload
 
 
@@ -38,3 +40,17 @@ class ShelfQueryBuilder:
         shelf = await ShelfQueryBuilder.get_shelf_by_id(session, shelf_id)
         await session.delete(shelf)
         await session.commit()
+
+
+
+    @staticmethod
+    async def get_shelf_by_book_id(session:AsyncSessionDep, book_id:int):
+        book =  await BookQueryBuilder.get_book_by_id(session, book_id)
+        if not book:
+            return EmptyQueryResult
+        query = select(Shelf).where(Shelf.id == book.shelf_id)
+        result = await session.execute(query)
+        shelf = result.scalars().first()
+        if not shelf:
+            return EmptyQueryResult
+        return shelf

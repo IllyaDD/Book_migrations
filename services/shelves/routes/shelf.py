@@ -42,3 +42,12 @@ async def delete_shelf(shelf_id:int, session:AsyncSessionDep):
         await ShelfQueryBuilder.delete_shelf(session, shelf_id)
     except EmptyQueryResult:
         raise HTTPException(status_code=404, detail="Shelf not found")
+
+
+@shelf_router.get("/shelves/by_book/{book_id}")
+async def find_shelf_by_book(session:AsyncSessionDep, book_id:int):
+    try:
+        shelf = await ShelfQueryBuilder.get_shelf_by_book_id(session, book_id)
+        return shelf
+    except EmptyQueryResult as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=(e))
