@@ -22,3 +22,11 @@ class BookCreateSchema(SQLModel):
     link: Optional[str] = None
     shelf_id: int
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+
+class BookUpdateSchema(SQLModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    link: Optional[str] = None
+    shelf_id: Optional[int] = None

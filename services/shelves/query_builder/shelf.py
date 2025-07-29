@@ -3,10 +3,12 @@ from sqlmodel import select
 
 from common.errors import EmptyQueryResult
 from dependecies.session import AsyncSessionDep
-from models.shelves import Shelf
-from models.books import Book
+from models import Shelf
+from models import Book
 from services.books.query_builder.book import BookQueryBuilder
 from sqlalchemy.orm import selectinload
+
+from services.shelves.schemas import ShelfUpdateSchema
 
 
 class ShelfQueryBuilder:
@@ -54,3 +56,16 @@ class ShelfQueryBuilder:
         if not shelf:
             return EmptyQueryResult
         return shelf
+
+
+
+
+    @staticmethod
+    async def update_shelf(session:AsyncSessionDep, shelf_id:int, data:ShelfUpdateSchema):
+        shelf = await ShelfQueryBuilder.get_shelf_by_id(session, shelf_id)
+        for key, value in data.model_dump(exclude_unset=True).items():
+            setattr(shelf, key, value)
+            await session.commit()
+            await session.refresh(shelf)
+        return shelf
+

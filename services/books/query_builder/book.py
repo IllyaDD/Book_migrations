@@ -4,6 +4,7 @@ from sqlmodel import select
 from common.errors import EmptyQueryResult
 from dependecies.session import AsyncSessionDep
 from models.books import Book
+from services.books.schemas import BookUpdateSchema
 
 
 class BookQueryBuilder:
@@ -47,4 +48,12 @@ class BookQueryBuilder:
         book = result.scalar_one_or_none()
         if not book:
             raise EmptyQueryResult
+        return book
+    @staticmethod
+    async def update_book(session:AsyncSessionDep, book_id:int, data:BookUpdateSchema):
+        book = await BookQueryBuilder.get_book_by_id(session, book_id)
+        for key, value in data.model_dump(exclude_unset=True).items():
+            setattr(book, key, value)
+        await session.commit()
+        await session.refresh(book)
         return book

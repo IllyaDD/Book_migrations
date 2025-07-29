@@ -22,3 +22,11 @@ class ShelfCreateSchema(SQLModel):
     name: str
     description: Optional[str] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+
+
+
+class ShelfUpdateSchema(SQLModel):
+    name: Optional[str] = None
+    description:Optional[str] = None

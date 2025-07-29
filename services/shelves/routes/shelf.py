@@ -1,8 +1,10 @@
 from fastapi import APIRouter, status, HTTPException
+from pydantic import ValidationError
 
 from common.errors import EmptyQueryResult
 from dependecies.session import AsyncSessionDep
 from services.shelves.query_builder.shelf import ShelfQueryBuilder
+from services.shelves.schemas import ShelfUpdateSchema
 from services.shelves.schemas.shelf import ShelfListResponseSchema, ShelfCreateSchema
 from models.shelves import Shelf
 
@@ -28,12 +30,12 @@ async def get_shelf_by_id(shelf_id:int, session : AsyncSessionDep):
         raise HTTPException(status_code=404, detail="Shelf not found")
 
 
-@shelf_router.post("/shelf_add", status_code=status.HTTP_201_CREATED)
+@shelf_router.post("/shelves", status_code=status.HTTP_201_CREATED)
 async def add_shelf(shelf:ShelfCreateSchema, session:AsyncSessionDep):
     try:
-        new_shelf = await ShelfQueryBuilder.add_shelf(session, Shelf(**shelf.dict()))
+        new_shelf = await ShelfQueryBuilder.add_shelf(session, Shelf(**shelf.model_dump()))
         return new_shelf
-    except Exception as e:
+    except ValidationError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @shelf_router.delete("/shelves/{shelf_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -51,3 +53,11 @@ async def find_shelf_by_book(session:AsyncSessionDep, book_id:int):
         return shelf
     except EmptyQueryResult as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=(e))
+
+
+@shelf_router.patch("/shelves/{shelf_id}")
+async def update_shelf(session:AsyncSessionDep, shelf_id:int, data:ShelfUpdateSchema):
+    try:
+        return await ShelfQueryBuilder.update_shelf(session, shelf_id, data)
+    except EmptyQueryResult:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found")
