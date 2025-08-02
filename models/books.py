@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Optional
-
 from sqlalchemy import Column, DateTime, VARCHAR, Integer
 from sqlmodel import Field, SQLModel, Relationship      
 

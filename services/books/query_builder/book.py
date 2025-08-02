@@ -49,6 +49,7 @@ class BookQueryBuilder:
         if not book:
             raise EmptyQueryResult
         return book
+
     @staticmethod
     async def update_book(session:AsyncSessionDep, book_id:int, data:BookUpdateSchema):
         book = await BookQueryBuilder.get_book_by_id(session, book_id)

@@ -9,7 +9,9 @@ class BookResponseSchema(SQLModel):
     id: int
     name: str = Field(max_length=32)
     description: str
+    link:str
     created_at: datetime
+    shelf_id: int
 
 
 class BookListResponseSchema(SQLModel):
@@ -29,4 +31,4 @@ class BookUpdateSchema(SQLModel):
     name: Optional[str] = None
     description: Optional[str] = None
     link: Optional[str] = None
-    shelf_id: Optional[int] = None
+    shelf_id: Optional[int] = None 

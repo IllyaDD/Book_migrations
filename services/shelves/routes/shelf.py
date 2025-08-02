@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, HTTPException
+from fastapi import APIRouter, status, HTTPException, Query
 from pydantic import ValidationError
 
 from common.errors import EmptyQueryResult
@@ -7,28 +7,28 @@ from services.shelves.query_builder.shelf import ShelfQueryBuilder
 from services.shelves.schemas import ShelfUpdateSchema
 from services.shelves.schemas.shelf import ShelfListResponseSchema, ShelfCreateSchema
 from models.shelves import Shelf
-
+from services.shelves.errors import ShelfNotFound
 
 
 shelf_router = APIRouter()
 
-@shelf_router.get("/shelves")
-async def get_shelves(session: AsyncSessionDep):
+@shelf_router.get("/shelves", response_model=ShelfListResponseSchema)
+async def get_shelves(
+    session: AsyncSessionDep,
+    shelf_id: int = Query(None, description="Filter by shelf ID"),
+):
     try:
-        shelves = await ShelfQueryBuilder.get_shelves(session)
-        return ShelfListResponseSchema(items=shelves)
-    except EmptyQueryResult:
-        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
-
-
-@shelf_router.get("/shelves/{shelf_id}", response_model=Shelf)
-async def get_shelf_by_id(shelf_id:int, session : AsyncSessionDep):
-    try:
-        shelf = await ShelfQueryBuilder.get_shelf_by_id(session, shelf_id)
-        return shelf
-    except EmptyQueryResult:
-        raise HTTPException(status_code=404, detail="Shelf not found")
-
+        if shelf_id is not None:
+            shelf = await ShelfQueryBuilder.get_shelf_by_id(session, shelf_id)
+            return ShelfListResponseSchema(items=[shelf])
+        else:
+            shelves = await ShelfQueryBuilder.get_shelves(session)
+            return ShelfListResponseSchema(items=shelves)
+    except ShelfNotFound:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No shelves found matching the criteria"
+        )
 
 @shelf_router.post("/shelves", status_code=status.HTTP_201_CREATED)
 async def add_shelf(shelf:ShelfCreateSchema, session:AsyncSessionDep):
@@ -44,16 +44,6 @@ async def delete_shelf(shelf_id:int, session:AsyncSessionDep):
         await ShelfQueryBuilder.delete_shelf(session, shelf_id)
     except EmptyQueryResult:
         raise HTTPException(status_code=404, detail="Shelf not found")
-
-
-@shelf_router.get("/shelves/by_book/{book_id}")
-async def find_shelf_by_book(session:AsyncSessionDep, book_id:int):
-    try:
-        shelf = await ShelfQueryBuilder.get_shelf_by_book_id(session, book_id)
-        return shelf
-    except EmptyQueryResult as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=(e))
-
 
 @shelf_router.patch("/shelves/{shelf_id}")
 async def update_shelf(session:AsyncSessionDep, shelf_id:int, data:ShelfUpdateSchema):
