@@ -5,17 +5,27 @@ from common.errors import EmptyQueryResult
 from dependecies.session import AsyncSessionDep
 from models.books import Book
 from services.books.schemas import BookUpdateSchema
-
-
+from common.schemas import PaginationParams
+from services.books.schemas.filters import BookFilter
+from services.books.schemas import BookFilter
+from sqlalchemy import Select
 class BookQueryBuilder:
+
     @staticmethod
-    async def get_books(session: AsyncSessionDep):
-        query = select(Book)
-        result = await session.execute(query)
+    async def get_books_pagination(session:AsyncSessionDep, pagination_params:PaginationParams, filters:BookFilter) -> Select:
+        query_offset, query_limit = pagination_params.page * pagination_params.size, pagination_params.size
+        select_query = BookQueryBuilder.apply_filters(select(Book), filters).offset(query_offset).limit(query_limit)
+        result = await session.execute(select_query)
         books = result.scalars().all()
         if not books:
             raise EmptyQueryResult
         return books
+    
+    @staticmethod
+    def apply_filters(select_query: Select, filters: BookFilter) -> Select:
+        if filters and filters.name:
+            select_query = select_query.where(Book.name.ilike(f'%{filters.name}%'))
+        return select_query
 
 
     @staticmethod

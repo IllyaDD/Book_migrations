@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, status, HTTPException
+from fastapi import APIRouter, Query, status, HTTPException, Depends
 from watchfiles import awatch
 
 from common.errors import EmptyQueryResult
@@ -9,13 +9,19 @@ from models.books import Book
 from pydantic import ValidationError
 from services.books.schemas import BookUpdateSchema
 from services.books.errors import BookNotFound
+from typing import Annotated
+from common.schemas import PaginationParams
+from services.books.schemas import BookFilter
 books_router = APIRouter()
 
-
 @books_router.get("/books", response_model=BookListResponseSchema)
-async def get_books(session: AsyncSessionDep,
-                    book_id: int = Query(None, description="Filter by book ID"),
-                    book_name: str = Query(None, description="Filter by book name")):
+async def get_books(
+    session: AsyncSessionDep,
+    pagination_params: Annotated[PaginationParams, Depends()],
+    book_id: int = Query(None, description="Filter by book ID"),
+    book_name: str = Query(None, description="Filter by book name"),
+    name: str = Query(None, description="Filter by book name (partial match)")
+):
     try:
         if book_id is not None:
             book = await BookQueryBuilder.get_book_by_id(session, book_id)
@@ -23,17 +29,23 @@ async def get_books(session: AsyncSessionDep,
         if book_name is not None:
             book = await BookQueryBuilder.get_book_by_name(session, book_name)
             return BookListResponseSchema(items=[book])
-        else:
-            books = await BookQueryBuilder.get_books(session)
-            return BookListResponseSchema(items=books)
-    except BookNotFound:
+        
+        
+        filters = BookFilter(name=name) if name else None
+        books = await BookQueryBuilder.get_books_pagination(
+            session, 
+            pagination_params, 
+            filters
+        )
+        return BookListResponseSchema(items=books)
+    
+    except EmptyQueryResult:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No books found matching the criteria"
         )
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    
 @books_router.post('/books', status_code=status.HTTP_201_CREATED)
 async def add_book(book: BookCreateSchema, session: AsyncSessionDep) -> Book:
     try:
@@ -47,7 +59,7 @@ async def add_book(book: BookCreateSchema, session: AsyncSessionDep) -> Book:
 async def delete_book(book_id:int, session:AsyncSessionDep):
     try:
         await BookQueryBuilder.delete_book(session, book_id)
-    except EmptyQueryResult:
+    except BookNotFound:
         raise HTTPException(status_code=404, detail="Book not found")
 
 
@@ -56,5 +68,5 @@ async def delete_book(book_id:int, session:AsyncSessionDep):
 async def update_book(session:AsyncSessionDep, book_id:int, data:BookUpdateSchema):
     try:
         return await BookQueryBuilder.update_book(session, book_id, data)
-    except EmptyQueryResult:
+    except BookNotFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")

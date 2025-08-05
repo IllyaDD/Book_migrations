@@ -68,4 +68,3 @@ class ShelfQueryBuilder:
             await session.commit()
             await session.refresh(shelf)
         return shelf
-

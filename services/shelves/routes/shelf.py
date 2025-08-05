@@ -42,12 +42,12 @@ async def add_shelf(shelf:ShelfCreateSchema, session:AsyncSessionDep):
 async def delete_shelf(shelf_id:int, session:AsyncSessionDep):
     try:
         await ShelfQueryBuilder.delete_shelf(session, shelf_id)
-    except EmptyQueryResult:
+    except ShelfNotFound:
         raise HTTPException(status_code=404, detail="Shelf not found")
 
 @shelf_router.patch("/shelves/{shelf_id}")
 async def update_shelf(session:AsyncSessionDep, shelf_id:int, data:ShelfUpdateSchema):
     try:
         return await ShelfQueryBuilder.update_shelf(session, shelf_id, data)
-    except EmptyQueryResult:
+    except ShelfNotFound:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Shelf not found")
