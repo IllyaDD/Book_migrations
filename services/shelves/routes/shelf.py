@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, HTTPException, Query
+from fastapi import APIRouter, status, HTTPException, Query, Depends
 from pydantic import ValidationError
 
 from common.errors import EmptyQueryResult
@@ -9,27 +9,41 @@ from services.shelves.schemas.shelf import ShelfListResponseSchema, ShelfCreateS
 from models.shelves import Shelf
 from services.shelves.errors import ShelfNotFound
 
-
+from typing import Annotated
+from common.schemas import PaginationParams
+from services.shelves.schemas import ShelfFilter
 shelf_router = APIRouter()
 
 @shelf_router.get("/shelves", response_model=ShelfListResponseSchema)
 async def get_shelves(
     session: AsyncSessionDep,
+    pagination_params: Annotated[PaginationParams, Depends()],
     shelf_id: int = Query(None, description="Filter by shelf ID"),
+    name: str = Query(None, description="Filter by shelf name (partial match)"),
 ):
     try:
         if shelf_id is not None:
             shelf = await ShelfQueryBuilder.get_shelf_by_id(session, shelf_id)
             return ShelfListResponseSchema(items=[shelf])
-        else:
-            shelves = await ShelfQueryBuilder.get_shelves(session)
-            return ShelfListResponseSchema(items=shelves)
-    except ShelfNotFound:
+        
+        filters = ShelfFilter(name=name) if name else None
+        shelves = await ShelfQueryBuilder.get_shelf_pagination(
+            session, 
+            pagination_params, 
+            filters
+        )
+        return ShelfListResponseSchema(items=shelves)
+    
+    except EmptyQueryResult:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No shelves found matching the criteria"
         )
-
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    
+    
+    
 @shelf_router.post("/shelves", status_code=status.HTTP_201_CREATED)
 async def add_shelf(shelf:ShelfCreateSchema, session:AsyncSessionDep):
     try:

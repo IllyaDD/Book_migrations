@@ -9,18 +9,25 @@ from services.books.query_builder.book import BookQueryBuilder
 from sqlalchemy.orm import selectinload
 
 from services.shelves.schemas import ShelfUpdateSchema
-
+from sqlmodel import select
+from sqlalchemy import Select
+from services.shelves.schemas import ShelfFilter
+from common.schemas import PaginationParams
 
 class ShelfQueryBuilder:
     @staticmethod
-    async def get_shelves(session: AsyncSessionDep):
-        query = select(Shelf)
-        result = await session.execute(query)
+    async def get_shelf_pagination(session:AsyncSessionDep, pagination_params:PaginationParams, filters:ShelfFilter) -> Select:
+        query_offset, query_limit = pagination_params.page * pagination_params.size, pagination_params.size
+        select_query = ShelfQueryBuilder.apply_filters(select(Shelf), filters).offset(query_offset).limit(query_limit)
+        result = await session.execute(select_query)
         shelves = result.scalars().all()
         if not shelves:
             raise EmptyQueryResult
         return shelves
-
+    
+    
+    
+    
     @staticmethod
     async def get_shelf_by_id(session: AsyncSessionDep, shelf_id: int) -> Shelf:
         query = select(Shelf).where(Shelf.id == shelf_id)
@@ -42,6 +49,12 @@ class ShelfQueryBuilder:
         shelf = await ShelfQueryBuilder.get_shelf_by_id(session, shelf_id)
         await session.delete(shelf)
         await session.commit()
+
+    @staticmethod
+    def apply_filters(select_query: Select, filters: ShelfFilter) -> Select:
+        if filters and filters.name:
+            select_query = select_query.where(Shelf.name.ilike(f'%{filters.name}%'))
+        return select_query
 
 
 
