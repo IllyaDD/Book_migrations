@@ -6,7 +6,7 @@ from common.settings import Settings
 from db.database import Database
 from services.books.routes.book import books_router
 from services.shelves.routes.shelf import shelf_router
-
+from services.user.routes.user import users_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,3 +20,4 @@ app = FastAPI(lifespan=lifespan)
 
 app.include_router(books_router, tags=['books'])
 app.include_router(shelf_router, tags=['shelves'])
+app.include_router(users_router)

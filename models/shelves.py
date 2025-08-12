@@ -1,8 +1,10 @@
-from datetime import datetime
 from typing import Optional, List
-
 from sqlalchemy import Column, VARCHAR, DateTime
 from sqlmodel import SQLModel, Field, Relationship
+from datetime import datetime
+
+
+
 
 class Shelf(SQLModel, table=True):
     __tablename__ = "shelves"
@@ -10,5 +12,7 @@ class Shelf(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True)
     name: str = Field(sa_column=Column(VARCHAR(100), nullable=False))
     description: Optional[str] = Field(sa_column=Column(VARCHAR(500), nullable=True))
-    created_at: Optional[datetime] = Field(sa_column=Column(DateTime(timezone=True), nullable=False))
+    created_at: datetime = Field(
+    sa_column=Column(DateTime(timezone=True), default_factory=datetime.utcnow
+))
     books: List["Book"] = Relationship(back_populates="shelf")

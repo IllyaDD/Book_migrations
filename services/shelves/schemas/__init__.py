@@ -1,2 +1,2 @@
 from .shelf import ShelfCreateSchema,ShelfResponseSchema,ShelfListResponseSchema, ShelfUpdateSchema
-from .filters import ShelfFilter
+from .filter import ShelfFilter

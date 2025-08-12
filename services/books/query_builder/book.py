@@ -6,7 +6,7 @@ from dependecies.session import AsyncSessionDep
 from models.books import Book
 from services.books.schemas import BookUpdateSchema
 from common.schemas import PaginationParams
-from services.books.schemas.filters import BookFilter
+from services.books.schemas import BookFilter
 from services.books.schemas import BookFilter
 from sqlalchemy import Select
 class BookQueryBuilder:
