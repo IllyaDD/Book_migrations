@@ -9,8 +9,9 @@ from common.schemas import PaginationParams
 from services.books.schemas import BookFilter
 from services.books.schemas import BookFilter
 from sqlalchemy import Select
-class BookQueryBuilder:
 
+
+class BookQueryBuilder:
     @staticmethod
     async def get_books_pagination(session:AsyncSessionDep, pagination_params:PaginationParams, filters:BookFilter) -> Select:
         query_offset, query_limit = pagination_params.page * pagination_params.size, pagination_params.size

@@ -12,8 +12,7 @@ class Book(SQLModel, table=True):
     description: Optional[str] = Field(sa_column=Column(VARCHAR(500), nullable=True))
     link: Optional[str] = Field(sa_column=Column(VARCHAR(500), nullable=True))
     created_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), default_factory=datetime.utcnow
-                         ))
+        sa_column=Column(DateTime(timezone=True), default=datetime.utcnow))
     shelf_id: int = Field(foreign_key="shelves.id", nullable=False)
     shelf: "Shelf" = Relationship(back_populates="books")
     user_id: int = Field(foreign_key="users.id", nullable=False)

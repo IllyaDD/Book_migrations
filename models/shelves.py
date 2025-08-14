@@ -13,6 +13,8 @@ class Shelf(SQLModel, table=True):
     name: str = Field(sa_column=Column(VARCHAR(100), nullable=False))
     description: Optional[str] = Field(sa_column=Column(VARCHAR(500), nullable=True))
     created_at: datetime = Field(
-    sa_column=Column(DateTime(timezone=True), default_factory=datetime.utcnow
-))
+        sa_column=Column(DateTime(timezone=True), default=datetime.utcnow)
+    )
     books: List["Book"] = Relationship(back_populates="shelf")
+    user_id: int = Field(foreign_key="users.id", nullable=False)
+    user: "User" = Relationship(back_populates="created_shelves")

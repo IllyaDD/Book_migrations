@@ -3,7 +3,6 @@ from fastapi_users import FastAPIUsers
 from services.user.modules.manager import get_user_manager, auth_backend
 from common.errors import EmptyQueryResult
 from dependecies.session import AsyncSessionDep  # Fixed typo here
-from services.books.query_builder.book import BookQueryBuilder
 from services.books.schemas.book import BookListResponseSchema, BookCreateSchema
 from models import Book, User
 from pydantic import ValidationError
@@ -12,7 +11,7 @@ from services.books.errors import BookNotFound
 from typing import Annotated
 from common.schemas import PaginationParams
 from services.books.schemas import BookFilter
-
+from services.books.query_builder import BookQueryBuilder
 fastapi_users = FastAPIUsers[User, int](
     get_user_manager,
     [auth_backend]
@@ -77,7 +76,7 @@ async def add_book(
 async def delete_book(
         book_id: int,
         session: AsyncSessionDep,
-        user: User = Depends(current_active_user)  # Added auth check
+        user: User = Depends(current_active_user)
 ):
     try:
         await BookQueryBuilder.delete_book(session, book_id)
@@ -93,7 +92,7 @@ async def update_book(
         book_id: int,
         data: BookUpdateSchema,
         session: AsyncSessionDep,
-        user: User = Depends(current_active_user)  # Added auth check
+        user: User = Depends(current_active_user)
 ) -> Book:
     try:
         return await BookQueryBuilder.update_book(session, book_id, data)
