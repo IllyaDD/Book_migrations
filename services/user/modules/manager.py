@@ -1,4 +1,5 @@
 from typing import Optional
+import logging
 
 from fastapi_users import BaseUserManager, FastAPIUsers
 from fastapi_users.authentication import BearerTransport, JWTStrategy, AuthenticationBackend
@@ -8,23 +9,24 @@ from common.settings import Settings
 from dependecies.auth import get_user_db
 from models import User
 
+logger = logging.getLogger(__name__)
 
 class UserManager(BaseUserManager[User, int]):
     reset_password_token_secret = Settings().auth.reset_password_token_secret.get_secret_value()
     verification_token_secret = Settings().auth.verification_token_secret.get_secret_value()
 
     async def on_after_register(self, user, request: Optional[Request] = None):
-        print(f"User {user.email} has registered")
+        logger.info(f"User {user.email} has registered")
 
     async def on_after_forgot_password(
         self, user, token, request: Optional[Request] = None
     ):
-        print(f"User: {user.email} forgot password. Reset token: {token}")
+        logger.info(f"User: {user.email} forgot password. Reset token: {token}")
 
     async def on_after_request_verify(
         self, user, token, request: Optional[Request] = None
     ):
-        print(f"User: {user.email} sended verification request. token: {token}")
+        logger.info(f"User: {user.email} sended verification request. token: {token}")
 
     def parse_id(self, user_id):
         return int(user_id)
