@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query, status, HTTPException, Depends
 from fastapi_users import FastAPIUsers
 from services.user.modules.manager import get_user_manager, auth_backend
 from common.errors import EmptyQueryResult
-from dependecies.session import AsyncSessionDep  # Fixed typo here
+from dependecies.session import AsyncSessionDep
 from services.books.schemas.book import BookListResponseSchema, BookCreateSchema
 from models import Book, User
 from pydantic import ValidationError
@@ -27,7 +27,8 @@ async def get_books(
         pagination_params: Annotated[PaginationParams, Depends()],
         book_id: int = Query(None, description="Filter by book ID"),
         book_name: str = Query(None, description="Filter by book name"),
-        name: str = Query(None, description="Filter by book name (partial match)")
+        name: str = Query(None, description="Filter by book name (partial match)"),
+        user_id:int = Query(None, description='Find books by user id')
 ):
     try:
         if book_id is not None:
@@ -36,6 +37,9 @@ async def get_books(
         if book_name is not None:
             book = await BookQueryBuilder.get_book_by_name(session, book_name)
             return BookListResponseSchema(items=[book])
+        if user_id is not None:
+            books = await BookQueryBuilder.get_book_by_user_id(session, user_id)
+            return  BookListResponseSchema(items=books)
 
         filters = BookFilter(name=name) if name else None
         books = await BookQueryBuilder.get_books_pagination(

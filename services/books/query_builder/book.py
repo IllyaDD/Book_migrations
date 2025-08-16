@@ -28,6 +28,14 @@ class BookQueryBuilder:
             select_query = select_query.where(Book.name.ilike(f'%{filters.name}%'))
         return select_query
 
+    @staticmethod
+    async def get_book_by_user_id(session: AsyncSessionDep, user_id: int) -> list[Book]:
+        query = select(Book).where(Book.user_id == user_id)
+        result = await session.execute(query)
+        books = result.scalars().all()
+        if not books:
+            raise EmptyQueryResult
+        return books
 
     @staticmethod
     async def get_book_by_id(session:AsyncSessionDep, book_id:int) -> Book:

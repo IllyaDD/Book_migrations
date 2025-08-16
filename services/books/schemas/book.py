@@ -11,7 +11,8 @@ class BookResponseSchema(SQLModel):
     description: str
     link:str
     created_at: datetime
-    shelf_id: int
+    shelf_id:int
+    user_id:int
 
 
 class BookListResponseSchema(SQLModel):

@@ -3,7 +3,7 @@ from pydantic import ValidationError
 
 from common.errors import EmptyQueryResult
 from dependecies.session import AsyncSessionDep
-from services.shelves.query_builder.shelf import ShelfQueryBuilder
+from services.shelves.query_builder import ShelfQueryBuilder
 from services.shelves.schemas import ShelfUpdateSchema
 from services.shelves.schemas.shelf import ShelfListResponseSchema, ShelfCreateSchema
 from models.shelves import Shelf
