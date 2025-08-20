@@ -56,6 +56,19 @@ async def get_shelves(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
+
+@shelf_router.get("/users/shelves")
+async def get_users_shelves(
+        session: AsyncSessionDep,
+        user: User = Depends(current_active_user)
+) -> ShelfListResponseSchema:
+    try:
+        shelves = await ShelfQueryBuilder.get_shelves_by_user(session, user.id)
+        return ShelfListResponseSchema(firstName=user.first_name, secondName=user.second_name, items=shelves)
+    except EmptyQueryResult:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
+
+
 @shelf_router.post("/shelves", status_code=status.HTTP_201_CREATED)
 async def add_shelf(
         shelf: ShelfCreateSchema,

@@ -4,11 +4,12 @@ from sqlmodel import select
 from common.errors import EmptyQueryResult
 from dependecies.session import AsyncSessionDep
 from models.books import Book
-from services.books.schemas import BookUpdateSchema
+from services.books.schemas import BookUpdateSchema, BookResponseSchema
 from common.schemas import PaginationParams
 from services.books.schemas import BookFilter
 from services.books.schemas import BookFilter
 from sqlalchemy import Select
+from sqlalchemy.orm import selectinload
 
 
 class BookQueryBuilder:
@@ -21,7 +22,6 @@ class BookQueryBuilder:
         if not books:
             raise EmptyQueryResult
         return books
-    
     @staticmethod
     def apply_filters(select_query: Select, filters: BookFilter) -> Select:
         if filters and filters.name:
@@ -46,6 +46,18 @@ class BookQueryBuilder:
             raise EmptyQueryResult
         return book
 
+    @staticmethod
+    async def get_books_by_user(
+            session: AsyncSessionDep,
+            user_id: int
+    ) -> List[Book]:
+        select_query = select(Book).options(selectinload(Book.user))
+        query_result = await session.execute(select_query)
+        books = list(query_result.scalars())
+
+        if not books:
+            raise EmptyQueryResult
+        return books
 
     @staticmethod
     async def add_book(session:AsyncSessionDep, book:Book):

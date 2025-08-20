@@ -7,12 +7,10 @@ from sqlmodel import SQLModel, Field
 
 class BookResponseSchema(SQLModel):
     id: int
-    name: str = Field(max_length=32)
-    description: str
-    link:str
+    name: str
+    description: Optional[str]
+    link: Optional[str]
     created_at: datetime
-    shelf_id:int
-    user_id:int
 
 
 class BookListResponseSchema(SQLModel):

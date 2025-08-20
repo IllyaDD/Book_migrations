@@ -58,6 +58,23 @@ async def get_books(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
+
+@books_router.get("/users/books")
+async def get_users_shelves(
+        session: AsyncSessionDep,
+        user: User = Depends(current_active_user)
+) -> BookListResponseSchema:
+    try:
+        books = await BookQueryBuilder.get_books_by_user(session, user.id)
+        return BookListResponseSchema(firstName=user.first_name, secondName=user.second_name, items=books)
+    except EmptyQueryResult:
+        raise HTTPException(status_code=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+
 @books_router.post('/books', status_code=status.HTTP_201_CREATED)
 async def add_book(
         book: BookCreateSchema,

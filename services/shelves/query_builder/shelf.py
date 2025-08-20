@@ -24,9 +24,19 @@ class ShelfQueryBuilder:
         if not shelves:
             raise EmptyQueryResult
         return shelves
-    
-    
-    
+
+    @staticmethod
+    async def get_shelves_by_user(
+            session: AsyncSessionDep,
+            user_id: int
+    ) -> List[Shelf]:
+        select_query = select(Shelf).options(selectinload(Shelf.user))
+        query_result = await session.execute(select_query)
+        shelves = list(query_result.scalars())
+        
+        if not shelves:
+            raise EmptyQueryResult
+        return shelves
     
     @staticmethod
     async def get_shelf_by_id(session: AsyncSessionDep, shelf_id: int) -> Shelf:
